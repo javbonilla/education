@@ -115,11 +115,65 @@ ng generate component persons
 
 What has Angular done for us?
 
-- It has created the *persons* directory with the source code for the component, starting from an empty template:
+- It has created the _persons_ directory with the source code for the component, starting from an empty template:
   - `persons.component.css` for custom styles. It could be removed.
   - `persons.component.html` for the HTML view of the component.
   - `persons.component.spec.ts` for unit tests.
   - `persons.component.ts` for the source code of the component.
 - It has included it in the Angular modules file `app.module.ts`:
 
-Now that we had a detailed tour through how Angular works and starts, let's start building our own components and we can do this by, in the app folder in the source folder, adding a new component file. Now we could do this right here or store the separate sub-folder, I will actually create a sub-folder and name it persons and that name is totally up to you but I want to create a persons component. Now you can name this file however you want but the naming convention is to have the name of your component, then .component and then .ts and in there, we now export a class which you also typically name persons component. So first the name of your component with a capital starting character and then also with a capital starting character but in the same word, component. Now here again to tell Angular that this class should be treated as a component, we add the @component decorator and here my IDE added the import automatically but you need to make sure that you do add it as well. You need to add it in every file where you use this, so just because you are already important component here doesn't mean you don't have to import it here anymore. Every file works on its own and every dependency of that file, so every object or class you're using from another file needs to be imported into this file. Now we definitely need a selector here, so our own tag by which we can use that. Now you're relatively free regarding the naming but it should be a name with a dash in it so that you have something like app something or my something, so that you're not clashing with default names, like h1. So I will name it app-persons and that is kind of the convention, you use app- as your prefix and then again your component name. Now I also will add a template URL and point at ./ to construct a relative path, ./persons.component.html. Now that file doesn't exist yet, so let's add a persons.component.html file next to the persons.component.ts file and there, I'll add a paragraph where I simply say some persons, nothing fancy but it'll do for now. Now last but not least, let's save these files and now we need to register this component in our module or in some Angular module. Now let's use the app module for now and let's add an import here at the top where I import persons component and you have to make sure that the name you use here matches your class name you used here, so persons component from and then you point at your file and this has to be a relative path, so ./ and then it's in the persons sub-folder and there persons component, again without .ts, that is added automatically for you. Now we add it to declarations because we have to declare all the components we are using in this module. We don't add it to Bootstrap because you only add your root component here, the question then of course is, where will Angular look for the selector of this component then? And the answer is in all other components of this declaration list here basically. So we can go to the app.component.html file and delete all the default code in there and now add app-persons as an HTML tag. And if you now save that all, you will see that if you go back to your browser, you see some persons here and that of course is the content of your own persons component
+Now that we had a detailed tour through how Angular works and starts, let's start building our own components and we can do this by, in the app folder in the source folder, adding a new component file. Now we could do this right here or store the separate sub-folder, I will actually create a sub-folder and name it persons and that name is totally up to you but I want to create a persons component. Now you can name this file however you want but the naming convention is to have the name of your component, then .component and then .ts and in there, we now export a class which you also typically name persons component. So first the name of your component with a capital starting character and then also with a capital starting character but in the same word, component. Now here again to tell Angular that this class should be treated as a component, we add the @component decorator and here my IDE added the import automatically but you need to make sure that you do add it as well. You need to add it in every file where you use this, so just because you are already important component here doesn't mean you don't have to import it here anymore. Every file works on its own and every dependency of that file, so every object or class you're using from another file needs to be imported into this file. Now we definitely need a selector here, so our own tag by which we can use that. Now you're relatively free regarding the naming but it should be a name with a dash in it so that you have something like app something or my something, so that you're not clashing with default names, like h1. So I will name it app-persons and that is kind of the convention, you use app- as your prefix and then again your component name. Now I also will add a template URL and point at ./ to construct a relative path, ./persons.component.html. Now that file doesn't exist yet, so let's add a persons.component.html file next to the persons.component.ts file and there, I'll add a paragraph where I simply say some persons, nothing fancy but it'll do for now. Now last but not least, let's save these files and now we need to register this component in our module or in some Angular module. Now let's use the app module for now and let's add an import here at the top where I import persons component and you have to make sure that the name you use here matches your class name you used here, so persons component from and then you point at your file and this has to be a relative path, so ./ and then it's in the persons sub-folder and there persons component, again without .ts, that is added automatically for you. Now we add it to declarations because we have to declare all the components we are using in this module. We don't add it to Bootstrap because you only add your root component here, the question then of course is, where will Angular look for the selector of this component then? And the answer is in all other components of this declaration list here basically. So we can go to the app.component.html file and delete all the default code in there and now add app-persons as an HTML tag. And if you now save that all, you will see that if you go back to your browser, you see some persons here and that of course is the content of your own persons component.
+
+## Cross component communication with property binding
+
+``` ts persons.component.ts
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-persons',
+  templateUrl: './persons.component.html',
+  styleUrls: ['./persons.component.css'],
+})
+export class PersonsComponent {
+  @Input() personList: string[] = [];
+  title: string = 'Persons list';
+}
+```
+
+[Input](https://angular.io/api/core/Input)
+
+`@Input` is an Angular decorator that marks a class field as an input property and supplies configuration metadata. The input property is bound to a DOM property in the template. During change detection, Angular automatically updates the data property with the DOM property's value.
+
+Now we can go to the `AppComponent` where we use that tag and here, we can set this just as we can set attributes on normal HTML elements, at least it's kind of comparable to that. There's just one special thing, for property binding to tell Angular that you are now binding the property of that other component, you add square brackets here and then the name of the property you want to bind and there I'll bind to person list which is the name of the property I have in person component, this one.
+
+``` html app.component.html
+<app-persons [personList]="persons"></app-persons>
+```
+
+``` ts app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  title = 'ng-refresher';
+  persons: string[] = ['Michael', 'Jane', 'John'];
+}
+```
+
+And now we can output the persons using the `ngFor` directive, a structural directive that renders a template for each item in a collection. The directive is placed on an element, which becomes the parent of the cloned templates.
+
+[*ngFor](https://angular.io/api/common/NgFor)
+
+``` html
+<ul>
+  <li *ngFor="let person of personList">{{ person }}</li>
+</ul>
+```
+
+The result is:
+
+![04](img/04.png)
