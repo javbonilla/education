@@ -233,3 +233,123 @@ You might know that from some apps like Twitter, if a person links some web page
 Now that web view as I mentioned allows you to run your app, a normal web app inside of a native app that renders this full screen browser.
 
 Now you could say that this has to be slower than a compiled app where you work with the real native widgets and technically that would be true, such an app will be a bit smaller because there is this extra wrapper and it is just a web page but it is super important to stress here that modern devices are so fast and an Ionic app typically uses so little performance that you will absolutely not see any difference and then you would just have the advantage of being able to build a cross-platform app with almost no effort at all, that looks and feels like a native app, that also is technically a native app and where you can tap into all the native device features like the camera you might need, just that if you look under the hood, it's not really compiled down to a native mobile app but instead it's wrapped into a native mobile app but again, the performance difference will in 99% of all cases not matter and I do mean it like this, not matter for you and you just reap the benefits.
+
+## Ionic Component Basics
+
+### Core app building blocks
+
+![12](./img/12.png)
+
+**UI components** these Ionic components are one of the most important building blocks you need in any Ionic app.
+
+**Themes & styles** the look of these components. They look beautiful out of the box, but in your specific application you'll have your own style, your own corporate identity you want to show and you want to use and Ionic does not stop you from doing so, just because the components look good out of the box does not mean you can't style them.
+
+**Navigation** basically means that we want to switch between different pages of our app. Now a page doesn't technically mean a new document fetched from a server, instead you tipically build a so-called single page application where frameworks like Angular or Vue or libraries like React together with React Router drive the change of pages and the rendering of different parts of your app onto the screen and in mobile apps as well, there we also know that concept of tapping something, seeing a new page and then tapping the back button to go back.
+
+Now when we're building a bigger application, there will also be the point of time where we need to take care about **state management** and actually state management plays an important role even in tiny apps but there, it's very simple but the more complex your app gets, the harder state management becomes and state management, just in case you're not sure what this means, really refers to the management of data and information in your running app, something like is the user currently sending a request and should I show a spinner, that would be state or something like a list of loaded products, that would be another form of state. And this is also something where not Ionic directly but frameworks like Angular can help us and therefore we'll also dive into this later in the course.
+
+Now when we leave the web app world and we plan on publishing our Ionic app as a real native app through the apps stores, then we'll have it wrapped in this web view, in this real native app shell and we'll have this bridge to tap into **native device features** like a camera and that is another important building block of Ionic apps. Now admittedly, not so much of web apps, though you can tap into some native device features there as well as you will also learn in this course but mostly in native apps where you can actually access the entire bandwidth of native device features, something like face ID, touch ID or the location of the user and so on, all of that is possible and is made possible not by the Ionic component suite but by capacitor which is also developed by the Ionic team or alternatively, Cordova which is not developed by them but which is supported by Ionic.
+
+The CLI and that holds a port you'll also get for the build workflow and for the publishing workflow of your app, that also is part of the Ionic world and that is also what we'll have a look at later in this course.
+
+### Under the hood of the Ionic components
+
+![13](./img/13.png)
+
+Now how do we use these components? In a project where we imported this Ionic component library and there are actually different ways of importing it as you will also learn in this course, so in a project where we have this library imported, we have access to this core of Ionic, to these components and we use them just like regular HTML elements and now that is really important to understand if you never worked with web components before, the term might be or will be brand new to you and you might not know how to work with them. Well the thing is you just add them with their tags into your HTML code, in the places where you want to use them, just like regular HTML elements and here is an example, this would be the ion-button, basically a button provided by Ionic which wraps a native normal HTML button and then add some extra styling and extra functionality to it and that's also important. These web components are not just about pre-styled elements, they do add Javascript logic to them as well or at least they can and they often do and then this button here can be configured, it can receive attributes, just as you can set attributes on normal HTML elements. But of course the attributes you can set here and the properties you could set on this button programmatically as well depend on the exact web component you're using because all the things you can configure here, like the fill mode which defines which style of button this is and the color, these are of course things you can configure because the Ionic team made them configurable and the official docs are the place to go to learn which attributes and properties you can set on these web components and I'll guide you through thee docs later in this module. So we use it like a normal HTML element, it supports attributes and properties and these elements can also emit events and that is also quite interesting, you can emit your own events when you are building your own web components and therefore a lot of Ionic components actually also emit customer events to which you can listen, something like a special ion change event for select dropdown for example and we'll see some of these events throughout the course.
+
+![14](./img/14.png)
+
+[Ionic source code on GitHub](https://github.com/ionic-team/ionic-framework)
+
+### Learn all about the Ionic components
+
+In the official doc, of course
+
+[Ionic UI Components](https://ionicframework.com/docs/components)
+
+### Using basic Ionic components
+
+We want to create a *budget planner* in which annotate the incomes and expenses and compute the total of expenses.
+
+We want to create our application with a mobile app lookstyle, with a **header**, some toolbar at the top which displays the title of the app, something like *budget planner*, and then I want to have the main content below that toolbar where I essentially want to have an input field where I can enter some titles, some names, some description of the expense and then also the value, the amount of the expense, have a button which I can press and then a list below of that where I basically output my expenses and at the very bottom of that and maybe a little sum where I see the total sum of the expenses.
+
+[`ion-app`](https://ionicframework.com/docs/api/app)
+
+[`ion-content`](https://ionicframework.com/docs/api/content)
+
+``` html app.component.html
+<ion-app>
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title> Budget Planner </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Write a new expense</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item>
+            <ion-input label="Expense reason" labelPlacement="floating" type="text"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Expense amount" labelPlacement="floating" type="number"></ion-input>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+      <ion-button fill="outline">Save</ion-button>
+      <ion-button fill="clear">Clear</ion-button>
+    </ion-card>
+  </ion-content>
+</ion-app>
+```
+
+The result is:
+
+![15](./img/15.png)
+
+### Using the ionic grid
+
+[`ion-grid`](https://ionicframework.com/docs/api/grid)
+
+``` html app.component.html
+<ion-app>
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title> Budget Planner </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-grid>
+      <ion-row>
+        <ion-col size-md="6" offset-md="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-subtitle>Write a new expense</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item>
+                  <ion-input label="Expense reason" labelPlacement="floating" type="text"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-input label="Expense amount" labelPlacement="floating" type="number"></ion-input>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+            <ion-button fill="outline">Save</ion-button>
+            <ion-button fill="clear">Clear</ion-button>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-content>
+</ion-app>
+```
+
+The result is:
+
+![16](./img/16.png)

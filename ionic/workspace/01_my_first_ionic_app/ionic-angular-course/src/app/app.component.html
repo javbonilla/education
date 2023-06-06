@@ -1,3 +1,32 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title> Budget Planner </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-grid>
+      <ion-row>
+        <ion-col size-md="6" offset-md="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-subtitle>Write a new expense</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item>
+                  <ion-input label="Expense reason" labelPlacement="floating" type="text"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-input label="Expense amount" labelPlacement="floating" type="number"></ion-input>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+            <ion-button fill="outline">Save</ion-button>
+            <ion-button fill="clear">Clear</ion-button>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-content>
 </ion-app>
