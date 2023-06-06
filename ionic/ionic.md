@@ -353,3 +353,101 @@ The result is:
 The result is:
 
 ![16](./img/16.png)
+
+### Adding icons & using slots
+
+[Ionic icons](https://ionic.io/ionicons)
+
+``` html app.component.html
+            <ion-button>
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Save
+            </ion-button>
+            <ion-button fill="clear">
+              <ion-icon slot="start" name="trash-outline"></ion-icon>
+              Clear
+            </ion-button>
+```
+
+The result is:
+
+![17](./img/17.png)
+
+### Using CSS utility attributes
+
+To control general things like a margin around elements, padding, positioning inside of a container of a box, you can use an utility feature provided by Ionic or some utility features to be precise, a couple of utilities as classes or attributes.
+
+[CSS utilities](https://ionicframework.com/docs/layout/css-utilities)
+
+For example, if we want to position the buttons to the right of the card:
+
+``` html app.component.html
+            <div class="ion-margin-vertical ion-text-right">
+              <ion-button>
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Save
+              </ion-button>
+              <ion-button fill="clear" class="ion-margin-start">
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                Clear
+              </ion-button>
+            </div>
+```
+
+Result is quite beautiful:
+
+![18](./img/18.png)
+
+### Using Ionic elements like *normal* HTML elements
+
+It's time to add some logic to our buttons, with the help of Angular:
+
+``` html app.component.html
+          <ion-card>
+            <ion-card-header>
+              <ion-card-subtitle>Write a new expense</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item>
+                  <ion-input label="Expense reason" labelPlacement="floating" type="text" [(ngModel)]="reason"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-input label="Expense amount" labelPlacement="floating" type="number" [(ngModel)]="amount"></ion-input>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+            <div class="ion-margin-vertical ion-text-right">
+              <ion-button id="btn-save" (click)="save()">
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Save
+              </ion-button>
+              <ion-button fill="clear" class="ion-margin-start" id="btn-clear">
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                Clear
+              </ion-button>
+            </div>
+          </ion-card>
+```
+
+``` ts app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+  styleUrls: ['app.component.scss'],
+})
+export class AppComponent {
+  reason: string = '';
+  amount: number = 0;
+  constructor() {}
+
+  save() {
+    console.log('Reason: ' + this.reason);
+    console.log('Amount: ' + this.amount);
+  }
+}
+```
+
+### Creating Ionic components programatically

@@ -15,15 +15,23 @@
             <ion-card-content>
               <ion-list>
                 <ion-item>
-                  <ion-input label="Expense reason" labelPlacement="floating" type="text"></ion-input>
+                  <ion-input label="Expense reason" labelPlacement="floating" type="text" [(ngModel)]="reason"></ion-input>
                 </ion-item>
                 <ion-item>
-                  <ion-input label="Expense amount" labelPlacement="floating" type="number"></ion-input>
+                  <ion-input label="Expense amount" labelPlacement="floating" type="number" [(ngModel)]="amount"></ion-input>
                 </ion-item>
               </ion-list>
             </ion-card-content>
-            <ion-button fill="outline">Save</ion-button>
-            <ion-button fill="clear">Clear</ion-button>
+            <div class="ion-margin-vertical ion-text-right">
+              <ion-button id="btn-save" (click)="save()">
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Save
+              </ion-button>
+              <ion-button fill="clear" class="ion-margin-start" id="btn-clear">
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                Clear
+              </ion-button>
+            </div>
           </ion-card>
         </ion-col>
       </ion-row>
