@@ -177,3 +177,537 @@ And now we can output the persons using the `ngFor` directive, a structural dire
 The result is:
 
 ![04](img/04.png)
+
+## Handling user input
+
+Create a new component called _PersonInputComponent_ inside the _persons_ folder:
+
+``` bash
+ng generate component persons/person-input
+```
+
+## Property binding and event binding
+
+### Property binding
+
+```html
+<input type="text" id="name" [defaultValue]="John"> <!-- Property binding, assign a value to the property 'defaultValue' -->
+```
+
+### Event binding
+
+``` html
+<button (click)="onCreatePerson()">Create</button> <!-- Event binding, between (). Capture click event and call a method -->
+```
+
+### Two-way binding
+
+We add an input element to require the person name:
+
+``` html person-input.component.html
+<label for="name">Name</label>
+<input type="text" id="name" [(ngModel)]="enteredPersonName">
+<button (click)="onCreatePerson()">Create</button>
+```
+
+[ngModel](https://angular.io/api/forms/NgModel) Creates a FormControl instance from a domain model and binds it to a form control element. This is a directive exposed by Angular which supports the two-way binding syntax as it is called because this actually listen to the value and output changes into a property of our choice and update it with the latest value and on the other hand it will pass back changes into the value of this input.
+
+When hit the button, we want to add the person as a new element:
+
+``` ts person-input.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-person-input',
+  templateUrl: './person-input.component.html',
+  styleUrls: ['./person-input.component.css']
+})
+export class PersonInputComponent {
+  enteredPersonName = '';
+
+  onCreatePerson() {
+    console.log('Created a person: ' + this.enteredPersonName);
+    this.enteredPersonName = '';
+  }
+}
+```
+
+## Passing data around with custom events
+
+We want to pass our entered name up to the app component from inside our person input component and for this, we can set up our own event binding or our own bindable event to be precise. Now for our own property binding, we used input as a decorator, for our own event binding, we use output. So let's import output from @angular/core in the person input component and now we just need to use a property which will basically be turned into our own event transmitter you could say, our own event emitter. I'll add this property here as the first property maybe but that's up to you, the order doesn't matter and I'll name it person create, the name is totally up to you. Now in front of that, I'll add @output with parentheses and now I will initialize this with a default value which we also have to import from @angular/core and that's the event emitter object. This actually is a class or a constructor function and therefore we can use the new keyword to create a new event emitter object based on that class, that is what we store in person create. Now this is a so-called generic type which means we can add this strange smaller than, greater than signs here and in between, we defined the type of data our event will eventually hold as data when we emit it because you can pass some data along with your event and I want to pass a string because I want to pass the entered name with my event and that is what we defined with this syntax here. Now down there before we reset the input, I can therefore then call this person create and then call emit and this is a method made available by the event emitter and then as an argument here, we pass the data we want to pass along with our event and here, this is our enteredPersonName.
+
+``` ts persons-input-component.ts
+import { Component, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-person-input',
+  templateUrl: './person-input.component.html',
+  styleUrls: ['./person-input.component.css']
+})
+export class PersonInputComponent {
+  @Output() personCreate = new EventEmitter<string>();
+  enteredPersonName = '';
+
+  onCreatePerson() {
+    console.log('Created a person: ' + this.enteredPersonName);
+    this.personCreate.emit(this.enteredPersonName);
+    this.enteredPersonName = '';
+  }
+}
+```
+
+Now we're emitting this and thanks to @output, we can listen to this from outside, so from the parent component of this component, the component where we use this selector. So let's go to the app component where we do use it and now here with the parenthesis syntax, we can listen to person create and then again, execute a function like onPersonCreated. Let's add this here in app.component.ts, onPersonCreated and of course we now want to get that name that was created. We do pass it in person input, I do pass it to the emit method and in app component, to pass it along as an argument to this method, we can use a special reserved variable name, $event and that is a name automatically created by Angular, it holds the data our event carries. If we don't pass it, our data will basically be lost, if we pass this special name here, Angular will forward the data of the event to which you're listening, so the data of the person create event in this case. This means our data will now reach our method here and there, it will be the name of that person which will be a string in the end. Well and here, we can now simply use persons and push, that's a default Javascript method, push the name onto this array. And with this if we go back and I add Michael here, you see it's added and the DOM automatically updates and the page never reloads. All of that happens behind the scenes through Javascript, thanks to Angular.
+
+``` html app.component.html
+<app-person-input (personCreate)="onPersonCreated($event)"></app-person-input>
+<app-persons [personList]="persons"></app-persons>
+```
+
+``` ts app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  persons: string[] = ['Max', 'Manuel', 'Anna'];
+
+  onPersonCreated(name: string) {
+    this.persons.push(name);
+  }
+}
+```
+
+## Implementing Routing
+
+[Common routing tasks](https://angular.io/guide/router)
+
+We want to set up different pages and technically you still have one single page, the `index.html` file, but you want to give the user the illusion of having multiple pages. Now you can do this with an Angular feature called **routing**. This esentially allows Angular to read the URL of your browser and render different components based on that URL.
+
+To setup routing is necessary a router module. To generate the routing module you can use the Angular CLI:
+
+``` bash
+ng generate module app-routing
+```
+
+``` ts app-routing.module.ts
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { PersonsComponent } from '../persons/persons.component';
+import { PersonInputComponent } from '../persons/person-input/person-input.component';
+
+const routes: Routes = [
+  { path: '', component: PersonsComponent },
+  { path: 'input', component:PersonInputComponent}
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes)
+  ],
+  exports: [
+    RouterModule
+  ]
+})
+export class AppRoutingModule { }
+```
+
+In this module I want to set up the routes my Angular app knows, so the URLs it understands and for which it knows which component to render. I'll define these routes in the `routes` array.
+
+It's also necessary to register the new module in the Angular configuration:
+
+``` ts app.module.ts
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppComponent } from './app.component';
+import { PersonsComponent } from './persons/persons.component';
+import { PersonInputComponent } from './persons/person-input/person-input.component';
+import { AppRoutingModule } from './app-routing/app-routing.module';
+
+@NgModule({
+  declarations: [AppComponent, PersonsComponent, PersonInputComponent],
+  imports: [BrowserModule, FormsModule, AppRoutingModule],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+And now we can use on our main HTML file with an Angular directive:
+
+``` html app.component.html
+<router-outlet></router-outlet>
+```
+
+Now we can load data to our component using **services**.
+
+## Setting up services
+
+A service is essentially a class which can act as a middleman between components or as a data storage for other components or even interact with other services.
+
+I will create the _persons service_ into _persons_ folder using the Angular CLI:
+
+``` bash
+ng generate service persons/persons
+```
+
+``` ts persons.service.ts
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  // We can inject services into other components using a feature called 'dependency injection'
+  providedIn: 'root'
+})
+export class PersonsService {
+  persons: string[] = ['Max', 'Manuel', 'Anna'];
+
+  constructor() { }
+
+  addPerson(name: string) {
+    this.persons.push(name);
+  }
+}
+```
+
+The service will be registered in our app module file as a **provider**:
+
+``` ts app.module.ts
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppComponent } from './app.component';
+import { PersonsComponent } from './persons/persons.component';
+import { PersonInputComponent } from './persons/person-input/person-input.component';
+import { AppRoutingModule } from './app-routing/app-routing.module';
+import { PersonsService } from './persons/persons.service';
+
+@NgModule({
+  declarations: [AppComponent, PersonsComponent, PersonInputComponent],
+  imports: [BrowserModule, FormsModule, AppRoutingModule],
+  providers: [PersonsService], // Angular is aware of the service and allows Angular to inject it into components that need it
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+## Using services with dependency injection
+
+We are going to inject the service of Persons into the _Persons_ component:
+
+``` ts persons.component.ts
+import { Component, Input } from '@angular/core';
+import { PersonsService } from './persons.service';
+
+@Component({
+  selector: 'app-persons',
+  templateUrl: './persons.component.html',
+  styleUrls: ['./persons.component.css'],
+})
+export class PersonsComponent {
+  personList: string[];
+  title: string = 'Persons list';
+
+  // Angular will inject the service, because it is decorated with @Injectable
+  constructor(personsService: PersonsService) {
+    this.personList = personsService.persons;
+  }
+}
+```
+
+And now if we execute the project we can see the persons list again:
+
+![05](./img/05.png)
+
+## Working with Angular LifeCycle Hooks
+
+[Angular component lifecycle](https://angular.io/guide/lifecycle-hooks)
+
+Each Angular component goes through a lifecycle and going through the entire lifecycle and how it works. These are essentially methods you can add to your component and Angular will execute them for you when it reaches that hook.
+
+We are going to use the lifecycle of _Persons_ component to load the data:
+
+``` ts persons.component.ts
+import { Component, Input, OnInit } from '@angular/core';
+import { PersonsService } from './persons.service';
+
+@Component({
+  selector: 'app-persons',
+  templateUrl: './persons.component.html',
+  styleUrls: ['./persons.component.css'],
+})
+export class PersonsComponent implements OnInit {
+  personList: string[];
+  title: string = 'Persons list';
+
+  constructor(private personsService: PersonsService) {
+    // With 'private' in the 'personsService' method parameter Angular is creating a private class attribute with the same name as the method parameter.
+    // We could use the attribute 'this.personsService' in the rest of the component source code.
+    this.personList = [];
+  }
+
+  ngOnInit(): void {
+    this.personList = this.personsService.persons;
+  }
+}
+```
+
+## Adding a person with services
+
+``` ts persons-input.component.ts
+import { Component, Output, EventEmitter } from '@angular/core';
+import { PersonsService } from '../persons.service';
+
+@Component({
+  selector: 'app-person-input',
+  templateUrl: './person-input.component.html',
+  styleUrls: ['./person-input.component.css']
+})
+export class PersonInputComponent {
+  enteredPersonName = '';
+
+  constructor(private personsService: PersonsService) {
+  }
+
+  onCreatePerson() {
+    console.log('Created a person. Name: ' + this.enteredPersonName);
+    this.personsService.addPerson(this.enteredPersonName);
+  }
+}
+```
+
+## Navigating between components
+
+We create a very simple routing header:
+
+[Router link](https://angular.io/api/router/RouterLink)
+
+``` html app.component.html
+<a [routerLink]="'/'">Persons List</a> | <a [routerLink]="'/input'">Input</a>
+<hr>
+<router-outlet></router-outlet>
+```
+
+## Removing items upon a click
+
+Use a new method `removePerson()` on our _Persons_ service and capture click event to make the deletion:
+
+``` ts persons.service.ts
+  removePerson(name:string) {
+    this.persons = this.persons.filter(person => {
+      return person !== name;
+    });
+  }
+```
+
+``` html persons.component.html
+<h1>{{ title }}</h1>
+<ul>
+  <li *ngFor="let person of personList" (click)="onRemovePerson(person)">{{ person }}</li>
+</ul>
+```
+
+``` ts persons.component.ts
+  onRemovePerson(person: string) {
+    this.personsService.removePerson(person);
+  }
+```
+
+This code works, but Angular didn't update this correctly.
+
+## Pusing data around with subjects
+
+When we delete a person this is not picked up automatically. Now we can set up a mechanism where we push changes to places interested in the update, so push changes to components for example and to do that we will use **observables**:
+
+[Understanding RxJS](https://academind.com/tutorials/understanding-rxjs)
+
+``` ts persons.service.ts
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
+
+@Injectable({
+  // We can inject services into other components using a feature called 'dependency injection'
+  providedIn: 'root'
+})
+export class PersonsService {
+  private persons: string[] = ['Max', 'Manuel', 'Anna', 'Jane'];
+
+  constructor() { }
+
+  // Subject is very similar to an event emitter. Is a generic type and we can use it to manage and emit data.
+  personsChanged = new Subject<string[]>();
+
+  addPerson(name: string) {
+    console.log('Persons service: adding a person: ' + name);
+    this.persons.push(name);
+    this.personsChanged.next(this.persons); // next is used for emit a value
+  }
+
+  removePerson(name:string) {
+    this.persons = this.persons.filter(person => {
+      return person !== name;
+    });
+    this.personsChanged.next(this.persons); // next is used for emit a value
+  }
+}
+```
+
+And now we have to listen to this subject:
+
+``` ts persons.component.ts
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { PersonsService } from './persons.service';
+import { Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-persons',
+  templateUrl: './persons.component.html',
+  styleUrls: ['./persons.component.css'],
+})
+export class PersonsComponent implements OnInit, OnDestroy {
+  personList: string[];
+  title: string = 'Persons list';
+  private personsListSubscription: Subscription;
+
+  constructor(private personsService: PersonsService) {
+    // With 'private' in the 'personsService' method parameter Angular is creating a private class attribute with the same name as the method parameter.
+    // We could use the attribute 'this.personsService' in the rest of the component source code.
+    this.personList = this.personsService.getPersons();
+    this.personsListSubscription = new Subscription();
+  }
+
+  ngOnInit(): void {
+    // Set up a listener to the personsService
+    this.personsListSubscription = this.personsService.personsChanged.subscribe((persons) => {
+      this.personList = persons;
+    });
+  }
+
+  ngOnDestroy(): void {
+    // It's VERY IMPORTANT to unsuscribe to subjects to prevent memory leaks
+    this.personsListSubscription.unsubscribe();
+  }
+
+  onRemovePerson(person: string) {
+    this.personsService.removePerson(person);
+  }
+}
+```
+
+## Sending HTTP requests
+
+We are going to use SWAPI to make this example:
+
+[SWAPI - The Star Wars API](https://swapi.dev/)
+
+How do we send the HTTP request on Angular and transform the response data to use it in our project? Let's go:
+
+First, we will unlock the `HttpClient` in our app configuration:
+
+``` ts app.module.ts
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
+
+import { AppComponent } from './app.component';
+import { PersonsComponent } from './persons/persons.component';
+import { PersonInputComponent } from './persons/person-input/person-input.component';
+import { AppRoutingModule } from './app-routing/app-routing.module';
+import { PersonsService } from './persons/persons.service';
+
+@NgModule({
+  declarations: [AppComponent, PersonsComponent, PersonInputComponent],
+  imports: [BrowserModule, FormsModule, AppRoutingModule, HttpClientModule],
+  providers: [PersonsService],
+  bootstrap: [AppComponent],
+})
+export class AppModule { }
+```
+
+We will use a new service called `StarWarsPersonsService` to work with Star Wars persons:
+
+``` ts star-wars-persons-service.ts
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Subject, map } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class StarWarsPersonsServiceService {
+  private starWarsPersons: string[];
+  starWarsPersonsChanged = new Subject<string[]>();
+
+  constructor(private httpClient: HttpClient) {
+    this.starWarsPersons = [];
+  }
+
+  fetchPersons() {
+    // Use Http with a GET method to retrieve Star Wars persons
+    this.httpClient.get<any>('https://swapi.dev/api/people')
+    .pipe(map(response => {
+      // Transform data and return it
+      return response.results.map((result: { name: string; }) => result.name);
+    })) // The pipe method is for chaining observable operators
+    .subscribe(mappedResponse => {
+      console.log(mappedResponse);
+      this.starWarsPersonsChanged.next(mappedResponse);
+    });
+  }
+}
+```
+
+And use our new service in _Persons_ component:
+
+``` ts persons.component.ts
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { StarWarsPersonsServiceService } from './services/star-wars-persons-service.service';
+
+@Component({
+  selector: 'app-persons',
+  templateUrl: './persons.component.html',
+  styleUrls: ['./persons.component.css'],
+})
+export class PersonsComponent implements OnInit, OnDestroy {
+  personList: string[];
+  title: string = 'Persons list';
+  private personsListSubscription: Subscription;
+
+  constructor(private starWarsPersonsService: StarWarsPersonsServiceService) {
+    // With 'private' in the 'personsService' method parameter Angular is creating a private class attribute with the same name as the method parameter.
+    // We could use the attribute 'this.personsService' in the rest of the component source code.
+    this.personList = [];
+    this.personsListSubscription = new Subscription();
+  }
+
+  ngOnInit(): void {
+    this.starWarsPersonsService.fetchPersons();
+    this.personsListSubscription = this.starWarsPersonsService.starWarsPersonsChanged.subscribe(starWarsPersons => {
+      this.personList = starWarsPersons;
+    });
+  }
+
+  ngOnDestroy(): void {
+    // It's VERY IMPORTANT to unsuscribe to subjects to prevent memory leaks
+    this.personsListSubscription.unsubscribe();
+  }
+
+  onRemovePerson(person: string) {
+    // this.personsService.removePerson(person);
+  }
+}
+```
+
+## Showing a placeholder whilst waiting for a response
+
+While we're waiting for the HTTP request response we're showing nothing, instead it would be nice to have some text noticing the data is being loaded.
+
+We implement it with a boolean flag called `isLoading` that will show a text in the web page while data is being loaded:
+
+``` html persons.component.html
