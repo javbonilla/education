@@ -450,4 +450,431 @@ export class AppComponent {
 }
 ```
 
-### Creating Ionic components programatically
+### Why Angular?
+
+Why we will use Angular, because if we will implement everything on our own, this will be quite hard with vanilla Javascript. It doesn't have to be Angular but you will definitely need some framework or library at some point of time so that you don't have to reinvent the wheel all the time.
+
+![19](./img/19.png)
+
+## Angular + Ionic
+
+### Creating a new Ionic Angular project
+
+``` bash
+# navigate into the path you want to create the project
+cd /Users/jbonilla/education/education/ionic/workspace/02-ionic-angular-course
+
+# Install Ionic CLI
+sudo npm install -g @ionic/cli
+
+# And start a new project
+ionic start
+```
+
+### Analyzing the created project
+
+- *theme* directory, with CSS variables used by Ionic.
+- In `angular.json` configuration file we can find a lot of references to Ionic components: icons...
+- `ionic.config.json` configuration file, to configure Ionic.
+- `package.json` we have the packages about Angular and Ionic.
+- In `app.module.ts` we have the import of the Ionic module, for unlocking all the Ionic components in our Angular application.
+
+### Adding a loading a new page
+
+``` bash
+ng generate page recipes
+```
+
+Or you can use the Ionic CLI:
+
+``` bash
+ionic generate
+```
+
+And then select *page*
+
+### Using Angular features on Ionic components
+
+We want to show a recipes list in our *Recipes* page. The recipe model is this:
+
+``` ts recipe.model.ts
+export interface Recipe {
+  id: string;
+  title: string;
+  imageUrl: string;
+  ingredients: string[];
+}
+```
+
+We create a couple of recipes in our class:
+
+``` ts recipes.page.ts
+import { Component, OnInit } from '@angular/core';
+import { Recipe } from './recipe.model';
+
+@Component({
+  selector: 'app-recipes',
+  templateUrl: './recipes.page.html',
+  styleUrls: ['./recipes.page.scss'],
+})
+export class RecipesPage implements OnInit {
+  recipes: Recipe[] = [
+    {
+      id: '1',
+      title: 'Gazpacho',
+      imageUrl: 'https://www.recetasderechupete.com/wp-content/uploads/2020/05/Gazpacho-andaluz-Ajustes-de-rechupete-2.jpg',
+      ingredients: ['Tomate', 'Cebolla', 'Ajo', 'Pepino', 'Pimiento', 'AOVE', 'Vinagre', 'Sal']
+    },
+    {
+      id: '2',
+      title: 'Tortilla de patatas',
+      imageUrl: 'https://www.recetasderechupete.com/wp-content/uploads/2020/11/Tortilla-de-patatas-4.jpg',
+      ingredients: ['Huevos', 'Patatas', 'AOVE', 'Cebolla', 'Sal']
+    }
+  ];
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+```
+
+And show them in the HTML code:
+
+``` html recipes.page.html
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Recipes</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content [fullscreen]="true">
+  <ion-list>
+    <ion-item *ngFor="let recipe of recipes">
+      <ion-avatar>
+        <ion-img [src]="recipe.imageUrl"></ion-img>
+      </ion-avatar>
+      <ion-label class="ion-margin-start">{{recipe.title}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
+```
+
+Result is great!
+
+![20](./img/20.png)
+
+### Managing state with services
+
+Let's add an Angular service to retrieve the detail of a recipe.
+
+``` bash
+ionic generate #service
+```
+
+``` ts recipes.service.ts
+import { Injectable } from '@angular/core';
+import { Recipe } from './recipe.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class RecipesService {
+  private recipes: Recipe[] = [
+    {
+      id: '1',
+      title: 'Gazpacho',
+      imageUrl:
+        'https://www.recetasderechupete.com/wp-content/uploads/2020/05/Gazpacho-andaluz-Ajustes-de-rechupete-2.jpg',
+      ingredients: [
+        'Tomate',
+        'Cebolla',
+        'Ajo',
+        'Pepino',
+        'Pimiento',
+        'AOVE',
+        'Vinagre',
+        'Sal',
+      ],
+    },
+    {
+      id: '2',
+      title: 'Tortilla de patatas',
+      imageUrl:
+        'https://www.recetasderechupete.com/wp-content/uploads/2020/11/Tortilla-de-patatas-4.jpg',
+      ingredients: ['Huevos', 'Patatas', 'AOVE', 'Cebolla', 'Sal'],
+    },
+  ];
+
+  constructor() {}
+
+  getRecipes() {
+    return [...this.recipes];
+  }
+
+  getRecipe(recipeId: string) {
+    return {
+      ...this.recipes.find((recipe) => {
+        return recipe.id === recipeId;
+      })!
+    };
+  }
+}
+```
+
+``` ts recipes.page.ts
+import { Component, OnInit } from '@angular/core';
+import { Recipe } from './recipe.model';
+import { RecipesService } from './recipes.service';
+
+@Component({
+  selector: 'app-recipes',
+  templateUrl: './recipes.page.html',
+  styleUrls: ['./recipes.page.scss'],
+})
+export class RecipesPage implements OnInit {
+  recipes: Recipe[];
+
+  constructor(private recipesService: RecipesService) {
+    this.recipes = [];
+  }
+
+  ngOnInit() {
+    this.recipes = this.recipesService.getRecipes();
+  }
+
+}
+```
+
+``` ts recipe.page.ts
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { RecipesService } from '../recipes/recipes.service';
+import { Recipe } from '../recipes/recipe.model';
+
+@Component({
+  selector: 'app-recipe',
+  templateUrl: './recipe.page.html',
+  styleUrls: ['./recipe.page.scss'],
+})
+export class RecipePage implements OnInit {
+  recipe: Recipe = new Recipe();
+
+  constructor(private activatedRoute: ActivatedRoute, private recipesService: RecipesService) { }
+
+  ngOnInit() {
+    this.activatedRoute.paramMap.subscribe(params => {
+      if (!params.has('recipeId')) {
+        // redirect to recipes
+        return;
+      }
+      const recipeId = params.get('recipeId');
+      if (recipeId !== null) this.recipe = this.recipesService.getRecipe(recipeId)!;
+    });
+  }
+
+}
+```
+
+``` html recipe.page.html
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/recipes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{recipe.title}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">recipe</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-img [src]="recipe.imageUrl"></ion-img>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-list>
+          <ion-item *ngFor="let ingredient of recipe.ingredients">
+            {{ingredient}}
+          </ion-item>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+```
+
+### Setting up Angular routes
+
+It's time for a second page: a recipe detail page where you'll travel when tapping or clicking on a recipe in the recipes list. Let's go:
+
+``` bash 
+ionic generate #recipe
+```
+
+``` html recipes.page.html
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Recipes</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content [fullscreen]="true">
+  <ion-list>
+    <ion-item *ngFor="let recipe of recipes" [routerLink]="['./', recipe.id]">
+      <ion-avatar>
+        <ion-img [src]="recipe.imageUrl"></ion-img>
+      </ion-avatar>
+      <ion-label class="ion-margin-start">{{recipe.title}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
+```
+
+``` ts app-routing.module.ts
+import { NgModule } from '@angular/core';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+
+const routes: Routes = [
+  {
+    path: 'home',
+    loadChildren: () => import('./recipes/recipes.module').then( m => m.RecipesPageModule)
+  },
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'recipes',
+    children: [
+      {
+        path:'',
+        loadChildren: () => import('./recipes/recipes.module').then( m => m.RecipesPageModule)
+      },
+      {
+        path: ':recipeId',
+        loadChildren: () => import('./recipe/recipe.module').then( m => m.RecipePageModule)
+      }
+    ]
+  }
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+  ],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+```
+
+``` html recipe.page.html
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/recipes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{recipe.title}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">recipe</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-img [src]="recipe.imageUrl"></ion-img>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-list>
+          <ion-item *ngFor="let ingredient of recipe.ingredients">
+            {{ingredient}}
+          </ion-item>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+```
+
+### Deleting a recipe
+
+Now we add the deletion funcionality in the recipe detail page:
+
+### Injecting Ionic controllers
+
+[Controller alerts](https://ionicframework.com/docs/api/alert#controller-alerts)
+
+We want to show an alert before deleting the recipe. Thanks to Ionic/Angular now we can inject Ionic controllers, like an `AlertController`:
+
+``` ts recipe.page.ts
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RecipesService } from '../recipes/recipes.service';
+import { Recipe } from '../recipes/recipe.model';
+import { AlertController } from '@ionic/angular';
+
+@Component({
+  selector: 'app-recipe',
+  templateUrl: './recipe.page.html',
+  styleUrls: ['./recipe.page.scss'],
+})
+export class RecipePage implements OnInit {
+  recipe: Recipe = new Recipe();
+
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private recipesService: RecipesService,
+    private router: Router,
+    private alertController: AlertController
+  ) {}
+
+  ngOnInit() {
+    this.activatedRoute.paramMap.subscribe((params) => {
+      if (!params.has('recipeId')) {
+        // redirect to recipes
+        return;
+      }
+      const recipeId = params.get('recipeId');
+      if (recipeId !== null)
+        this.recipe = this.recipesService.getRecipe(recipeId)!;
+    });
+  }
+
+  onDeleteRecipe() {
+    // Show an alert
+    this.alertController.create({
+      header: 'Are you sure?',
+      message: 'Do you really want to delete the recipe?',
+      buttons: [{
+        text: 'Cancel',
+        role: 'cancel'
+      }, {
+        text: 'Delete',
+        handler: () => {
+          // Delete the recipe
+          this.recipesService.deleteRecipe(this.recipe.id);
+          // redirect to recipes list
+          this.router.navigate(['/recipes']);
+        }
+      }]
+    }).then(alert => {
+      alert.present();
+    });
+  }
+}
+```
