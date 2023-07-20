@@ -878,3 +878,113 @@ export class RecipePage implements OnInit {
   }
 }
 ```
+
+## Building native apps with Capacitor
+
+[iOS development](https://ionicframework.com/docs/developing/ios)
+
+[Android development](https://ionicframework.com/docs/developing/android)
+
+[Capacitor framework](https://capacitorjs.com/)
+
+### Creating an Android app
+
+For generate the native project, we can use the Capacitor CLI:
+
+``` bash
+ionic capacitor add android
+```
+
+A new folder *android* is added to the project with the Android app inside of it. You could open this folder in Android Studio to launch the app. This is a native app, it holds all the code for the native app and it also will hold your web app bundled into that native app.
+
+The next important step is set the packageId for the application:
+
+``` ts capacitor.config.ts
+import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.jbonilla.udemy.course.ionicangular',
+  appName: 'ionic-angular-course',
+  webDir: 'www',
+  server: {
+    androidScheme: 'https'
+  }
+};
+
+export default config;
+```
+
+With each meaningful change, Ionic apps must be built into web assets before the change can appear on Android simulators and devices. The web assets then must be copied into the native project. Luckily, this process is made easy with a single Ionic CLI command.
+
+``` bash
+ionic capacitor copy android
+```
+
+This command you should always execute after you've created a new build with `ng build` because Ionic Capacitor copy command will basically copy your *www* folder into this native app and bundle it into that again.
+
+Now you can run the project in Android Studio:
+
+``` bash
+ionic capacitor open android
+```
+
+### Creating an iOS app
+
+``` bash
+ionic capacitor add ios
+```
+
+Now again it's time to set the PackageID in `capacitor.config.ts` file:
+
+``` json capacitor.config.ts
+import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.jbonilla.udemy.course.ionicangular',
+  appName: 'ionic-angular-course',
+  webDir: 'www',
+  server: {
+    androidScheme: 'https'
+  }
+};
+
+export default config;
+```
+
+Open the project in Xcode:
+
+``` bash
+ionic capacitor open ios
+```
+
+## Debugging
+
+How to debug our Ionic & Angular app both in web and native platforms.
+
+- Debugging in the browser
+- Debugging native apps
+
+### Error messages and `console.log`
+
+``` ts recipes.page.ts
+  ngOnInit() {
+    this.recipes = this.recipesService.getRecipes();
+    console.log(this.recipes);
+  }
+```
+
+Only with this we could watch that `ngOnInit()` isn't called when recipes page is shown after deleting a recipe in the recipe detail page.
+
+### Using the browser DevTools and breakpoints
+
+We could use Chrome Dev Tools and place a breakpoint in our source code. Source code can be found in directory *webpack | src | app | ...*. And we can place a breakpoint only clicking in the line number:
+
+![21](./img/21.png)
+
+If we refresh the page, the execution is stopped just in the breakpoint:
+
+![22](./img/22.png)
+
+### Using VS Code for debugging
+
+[Debugging Angular](https://code.visualstudio.com/docs/nodejs/angular-tutorial#_debugging-angular)
