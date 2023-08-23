@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="primary">
+      <ion-button (click)="onCancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ selectedPlace.title }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-text-center padding">
+  <ion-text *ngIf="isEmpty" color="warning">No place received to book</ion-text>
+  <p *ngIf="!isEmpty">{{ selectedPlace.description }}</p>
+  <ion-button *ngIf="!isEmpty" (click)="onBookPlace()">Book</ion-button>
+</ion-content>

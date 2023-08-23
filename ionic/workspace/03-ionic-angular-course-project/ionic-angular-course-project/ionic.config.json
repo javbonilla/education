@@ -1,0 +1,7 @@
+{
+  "name": "Ionic Angular Course Project",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

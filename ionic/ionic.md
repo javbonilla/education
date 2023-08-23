@@ -988,3 +988,219 @@ If we refresh the page, the execution is stopped just in the breakpoint:
 ### Using VS Code for debugging
 
 [Debugging Angular](https://code.visualstudio.com/docs/nodejs/angular-tutorial#_debugging-angular)
+
+### Debugging Android apps
+
+You can see the `console.log` messages in the *Run* tab, or nowadays probably in the *Logcat* tab:
+
+Or you can inspect the device in Google Chrome:
+
+``` bash
+chrome://inspect
+```
+
+Then select the device and tap in *inspect*:
+
+![23](./img/23.png)
+
+### Debugging iOS apps
+
+On iOS you can use a feature on Safari Browser which you've only on MacOS systems. Go to menu *develop* , choose the simulator or real device and then click the IP you see here:
+
+![24](./img/24.png)
+
+That should open up the web inspector Safari offers and that is a tool where you can also see outgoing network requests, the DOM as it's being rendered, you can inspect all these elements there and in the last lecture of this module you'll find some detailed information on how the web inspector works, for example here top right corner, if you click that, you see the styles that are applied to an element and the computed styles which actually are applied.
+
+## Navigation and routing in Ionic apps
+
+### How routing works in an Ionic + Angular app
+
+![25](./img/25.png)
+
+It is really important that you understand how navigation works behind the scenes. In an Angular Ionic app, we use the Angular router for navigation and that is what you also already saw in the previous modules. We set up our routes in our Angular router configuration just as we do it in a normal Angular app and as I emphasized multiple times, this is just a normal Angular app but we use that router for setting up the routes and then we can use the router link or the navigate method when we inject the router to switch between the different paths and therefore the different pages. Now here comes the interesting part when using the Angular router in an Ionic app because this Ionic app with the @angular/ionic package actually kind of wraps that Angular routing functionality and you can tell that it does by the fact that we use this ion router outlet if you remember. It does so to basically add all these nice transitions, that's the main purpose and for that, Ionic thinks of navigation or the different pages as a stack of pages. Because if you think about a mobile app, you typically see one page at a time right and you can go to a new page or press the back button and go back. Well you can essentially do the same in the browser of course, there you also have a back button. So you can think of navigation as a stack of pages and you always view the page which is on top of this stack, so the topmost page, that is the page you see but the other pages are still there, just hidden so to say and when you go back, you basically pop that top page and you see the other pages. Ionic controls these stack of pages with a stack controller. Now that's a class you don't work with directly in your Angular app, Ionic does that for you, so it's internal to Ionic and as I mentioned, when you use the Angular router for navigating, Ionic basically watches the Angular router, it has a listener to your routing actions. When you go forward, it basically pushes a new page onto that stack and when you go back or use that ion back button, it pops that topmost page off. Now in case you're wondering how it knows whether a navigate call is meant to go forward or backward, it basically has a look at the internal ID of your navigation action and it turns out that by that ID you can determine whether the new route is basically one step ahead of the old route or behind it so to say. So you don't have to worry about that, Ionic is really smart about finding out if you're going forward or backward and that in turn is important for playing the right animation for transitioning from pages. Now these stack of pages and that's also something special Ionic does is then also cached for you and that is now a difference to your normal Angular for web in browser experience. There what happens is if you go to a new page and you go back, all these pages which in the end are just components are essentially destroyed when you leave them, no matter if you're going forward or backward. Now with Ionic, that's actually not the case. When you are going forward to a new page, that old page which is still in that stack of pages so to say is kept in a cache in memory. So this whole stack of pages is actually cached you could say and when you pop a page off, well then this is removed from the cache because it's removed from the stack. This will become important and it will also explain that little bug we had in our last modules which I'll fix now or which I'll now explain you why it happens. Now besides the Angular router for navigating around which we'll primarily use and which is the main recommended tool for going around in your Ionic Angular app, besides that, we also got the Ionic nav controller. That is an injectable service which you can inject into any component or a service you might have and that essentially gives you some utility methods that will also interact with that start controller, for example it will give you a pop method which allows you to manually pop off the latest page on the stack of pages and which will therefore trigger a back navigation. We'll not use the nav controller too much, still I will show it to you, it's good to know it's there, can help you with going back as I mentioned but primarily, we'll use the Angular router.
+
+### Ionic page caching & extra lifecycle hooks
+
+[Ionic page lifecycle](https://ionicframework.com/docs/angular/lifecycle)
+
+![26](./img/26.png)
+
+I mentioned that Ionic caches pages, these stack of pages and that explains why in the last module we had this back that when we deleted a recipe, it was still there. It's important to understand how the Angular lifecycle behaves and how it differs when we're talking about a page that was loaded with the Angular router and that is therefore indirectly also controlled by Ionic. In regular Angular components, no matter if we're using them by embedding their selector into our templates or by loading them via routing, we have a certain lifecycle but we also have a special lifecycle for the components we did load via routing and I will call them Ionic pages here though these are regular Angular components, just components we loaded via the Angular router and which are therefore indirectly controlled by Ionic. So for the regular Angular components, we have the ngOnInit, then we also have other lifecycle hooks like ngOnChanges but that's not so important here and if we in a web for example go to a different page, we have ngOnDestroy. Now that will be called when the component is basically removed and when it's really at this post. Now for Ionic pages, because of that caching mechanism we got some new lifecycle methods. We got ionViewWillEnter for example and that will run after ngOnInit, we also got ionViewDidEnter which also runs after that and also after WillEnter. Now the difference here is ionViewWillEnter basically execute right before the content of the page has been loaded and is displayed on the screen you could say and ionViewDidEnter will be called right after that. Both are called whenever a page becomes visible and that is important because with caching, if a page is still in cache and you are just not seeing it because another page is on top of it, on that stack of pages, it will actually never be destroyed so ngOnDestroy will never be called and ngOnInit will also never be called when you go back to that page which is still on the stack of pages. ionViewWillEnter and DidEnter will be called because these are called whenever the page becomes visible, when it becomes the top of that stack of pages so to say. And since ngOnDestroy never gets called but you might still want to do some cleanup work, you also get ionViewWillLeave and ionViewDidLeave and these also are called whenever the page becomes invisible so to say, whenever a new page is on top of it but it will also be called in places where ngOnDestroy is not called, which is the case if it's just not the topmost page of the stack anymore but still on the stack.
+
+It's time to resolve the bug on our project that not reload recipes list after deleting a recipe in recipe detail page:
+
+``` ts recipes.page.ts
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Recipe } from './recipe.model';
+import { RecipesService } from './recipes.service';
+
+@Component({
+  selector: 'app-recipes',
+  templateUrl: './recipes.page.html',
+  styleUrls: ['./recipes.page.scss'],
+})
+export class RecipesPage implements OnInit, OnDestroy {
+  recipes: Recipe[];
+
+  constructor(private recipesService: RecipesService) {
+    this.recipes = [];
+  }
+  ngOnDestroy(): void {
+    console.log('ngOnDestroy()');
+  }
+
+  ionViewDidEnter() {
+    console.log('ionViewDidEnter()');
+  }
+
+  ionViewWillEnter() {
+    console.log('ionViewWillEnter()');
+    this.recipes = this.recipesService.getRecipes();
+  }
+
+  ionViewWillLeave() {
+    console.log('ionViewWillLeave()');
+  }
+
+  ionViewDidLeave() {
+    console.log('ionViewDidLeave()');
+  }
+
+  ngOnInit() {
+    console.log('ngOnInit()');
+    // console.log(this.recipes);
+  }
+}
+```
+
+### Planning the course project
+
+We're going to build a place booking app, where people can offer their places and you can book other places, a little bit like AirBnB.
+
+We need:
+
+![27](./img/27.png)
+![28](./img/28.png)
+
+- A page where people cand find pages
+- Place detail, with an image of the place, title... And a button *book* that will open a booking modal.
+- Booking modal, an overlay not pushed on top of the page stack but instead simply a visual overlay on the current page.
+- Offers page, a page when we will be able to offer our places.
+- Offer detail.
+- New offer page.
+- Bookings of places we offered.
+- Authentication page.
+
+### Adding tabs to the app
+
+[ion-tabs](https://ionicframework.com/docs/api/tabs)
+
+[Angular navigation: working with tabs](https://ionicframework.com/docs/api/tabs)
+
+### Adding an Auth Guard
+
+[Angular: preventing unauthorized access](https://angular.io/guide/router#preventing-unauthorized-access)
+
+``` bash
+ng generate guard auth/auth
+# choose canMatch option
+```
+
+The file *auth/auth.guard.ts* is created:
+
+``` ts auth.guard.ts
+import { CanMatchFn, Route, Router, UrlSegment } from "@angular/router";
+import { AuthService } from "./service/auth.service";
+import { inject } from "@angular/core";
+
+export const authGuard: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
+  if (inject(AuthService).userIsAuthenticated) {
+    return true;
+  }
+
+  // Redirect to auth page
+  return inject(Router).parseUrl('/auth');
+};
+```
+
+And use it in routing module:
+
+``` ts app-routing.module.ts
+import { NgModule } from '@angular/core';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { authGuard } from './auth/auth.guard';
+
+const routes: Routes = [
+  {
+    path: 'home',
+    loadChildren: () => import('./places/places.module').then( m => m.PlacesPageModule)
+  },
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'auth',
+    loadChildren: () => import('./auth/auth.module').then( m => m.AuthPageModule)
+  },
+  {
+    path: 'places',
+    loadChildren: () => import('./places/places.module').then( m => m.PlacesPageModule),
+    canMatch: [authGuard]
+  },
+  {
+    path: 'bookings',
+    loadChildren: () => import('./bookings/bookings.module').then( m => m.BookingsPageModule),
+    canMatch: [authGuard]
+  },
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+  ],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+```
+
+### Opening a modal
+
+In Ionic a modal is not a page, it's a general component:
+
+``` bash
+ionic generate component bookings/create-booking
+```
+
+And don't forget to declarate the component!
+
+## Ionic components overview
+
+### Attributes & slots
+
+#### Attributes
+
+Ionic attributes are HTML attributes that provide additional information about Ionic elements.
+
+Example of attribute: [ion-item detail attribute](https://ionicframework.com/docs/api/item#detail)
+
+When `detail` attribute is set to `true`, a detail arrow will appear on the `ion-item`.
+
+#### Slots
+
+[Ionic thumbnail](https://ionicframework.com/docs/api/thumbnail) is an example of `slot`. Slots are not an Ionic feature, they are also a feature you don't see in Angular apps though. Slots are a web component feature and web components is a term of specifications that are built into the browser, so native web features. A slot allows you to define a place in your web component where external content can be rendered in.
+
+[ion-item slots](https://ionicframework.com/docs/api/item#slots)
+
+### Ionic grid basics
+
+[Ionic responsive grid](https://ionicframework.com/docs/api/grid)
+
+### Controlling grid alignment
+
+[ion-grid alignment](https://ionicframework.com/docs/api/grid#alignment)
+
+### `ion-list` vs `ion-grid`
+
+![29](./img/29.png)

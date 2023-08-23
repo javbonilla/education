@@ -1,0 +1,56 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button
+        default-href="['places', 'tabs', 'offers', place.id]"
+      ></ion-back-button>
+    </ion-buttons>
+    <ion-title>Edit Offer</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Edit Offer</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" sizeSm="10" offsetSm="1">
+        <ion-card>
+          <ion-card-content>
+            <ion-grid>
+              <ion-row class="ion-align-items-center">
+                <ion-col size="12" sizeMd="4">
+                  <img [src]="place.imageUrl" />
+                </ion-col>
+                <ion-col size="12" sizeMd="8">
+                  <ion-item>
+                    <ion-input label="Title" label-placement="floating" [(ngModel)]="place.title"></ion-input>
+                  </ion-item>
+                  <ion-item>
+                    <ion-input label="image URL" label-placement="floating" [(ngModel)]="place.imageUrl" clearInput="true" type="text" class="text-small" (ionChange)="updateImageThumbnail()"></ion-input>
+                  </ion-item>
+                  <ion-item>
+                    <ion-textarea label="Description" label-placement="floating" auto-grow="true" [(ngModel)]="place.description"></ion-textarea>
+                  </ion-item>
+                  <ion-item>
+                    <ion-input label="Price" label-placement="floating" [(ngModel)]="place.price" type="number"></ion-input>
+                  </ion-item>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-card-content>
+          <div class="ion-text-end">
+            <ion-button fill="clear">
+              <ion-icon slot="icon-only" name="save-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" (click)="goBack()">
+              <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

@@ -1,0 +1,24 @@
+/* place-detail.page.scss */
+.place-image {
+  width: 100%;
+  height: auto;
+}
+
+.place-description {
+  margin: 16px;
+}
+
+.price-description {
+  margin: 16px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.place-price {
+  --padding-end: 16px;
+  --ion-item-background: none;
+  --ion-item-text-end: unset;
+  --ion-label-text-align: end;
+}
